@@ -1,0 +1,150 @@
+<div class="container mt-4">
+  <h2>Gerenciamento de Usuários</h2>
+
+  <button class="btn btn-success mb-3" (click)="openRegisterModal()">Novo Usuário</button>
+
+  <div *ngIf="loading">Carregando...</div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <table *ngIf="!loading && users.length" class="table table-striped mt-3">
+    <thead>
+      <tr>
+        <th>Email</th>
+        <th>Status</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users">
+        <td>{{ user.email }}</td>
+        <td>
+          <svg cIcon [name]="user.lockoutEnabled ? 'cil-lock-locked' : 'cil-lock-unlocked'" [ngStyle]="{color: user.lockoutEnabled ? 'red' : 'green'}"></svg>
+        </td>
+        <td>
+          <button class="btn btn-sm btn-info me-2" (click)="openUserModal(user)">Detalhes</button>
+          <button class="btn btn-sm btn-warning me-2" (click)="openEditUser(user)">Editar</button>
+          <button class="btn btn-sm btn-danger" (click)="openDeleteModal(user)">Excluir</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div *ngIf="!loading && !users.length && !error">Nenhum usuário encontrado.</div>
+
+  <!-- Modal Cadastro -->
+  <div *ngIf="showRegisterModal" class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ isEditMode ? 'Alterar Usuário' : 'Novo Usuário' }}</h5>
+          <button type="button" class="btn-close" (click)="closeRegisterModal()"></button>
+        </div>
+        <form [formGroup]="registerForm" (ngSubmit)="registerUser()">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input id="email" type="email" class="form-control" formControlName="email" [class.is-invalid]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+              <div *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched" class="invalid-feedback">
+                Email inválido.
+              </div>
+            </div>
+            <div class="mb-3" *ngIf="!isEditMode">
+              <label for="password" class="form-label">Senha</label>
+              <input id="password" type="password" class="form-control" formControlName="password" [class.is-invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+              <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched" class="invalid-feedback">
+                Senha deve ter no mínimo 8 caracteres, um número e um caractere especial.
+              </div>
+            </div>
+            <div class="mb-3" *ngIf="!isEditMode">
+              <label for="repeatPassword" class="form-label">Repita a Senha</label>
+              <input id="repeatPassword" type="password" class="form-control" formControlName="repeatPassword" [class.is-invalid]="(registerForm.get('repeatPassword')?.invalid && registerForm.get('repeatPassword')?.touched) || registerForm.hasError('passwordsMismatch')">
+              <div *ngIf="registerForm.hasError('passwordsMismatch') && registerForm.get('repeatPassword')?.touched" class="invalid-feedback">
+                As senhas não coincidem.
+              </div>
+            </div>
+            <div class="mb-3" *ngIf="!isEditMode">
+              <label for="role" class="form-label">Perfil</label>
+              <select id="role" class="form-select" formControlName="role" [class.is-invalid]="registerForm.get('role')?.invalid && registerForm.get('role')?.touched">
+                <option value="" disabled>Selecione...</option>
+                <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
+              </select>
+              <div *ngIf="registerForm.get('role')?.invalid && registerForm.get('role')?.touched" class="invalid-feedback">
+                Selecione um perfil.
+              </div>
+            </div>
+            <div class="mb-3" *ngIf="isEditMode">
+              <label for="roleEdit" class="form-label">Perfil</label>
+              <select id="roleEdit" class="form-select" formControlName="role" [class.is-invalid]="registerForm.get('role')?.invalid && registerForm.get('role')?.touched">
+                <option value="" disabled>Selecione...</option>
+                <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
+              </select>
+              <div *ngIf="registerForm.get('role')?.invalid && registerForm.get('role')?.touched" class="invalid-feedback">
+                Selecione um perfil.
+              </div>
+            </div>
+            <div class="mb-3" *ngIf="isEditMode">
+              <label for="phoneNumber" class="form-label">Telefone</label>
+              <input id="phoneNumber" type="text" class="form-control" formControlName="phoneNumber">
+            </div>
+            <div *ngIf="registerError" class="alert alert-danger mt-2">{{ registerError }}</div>
+            <div *ngIf="registerSuccess" class="alert alert-success mt-2">{{ registerSuccess }}</div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeRegisterModal()">Cancelar</button>
+            <button class="btn btn-primary" type="submit" [disabled]="registerLoading || registerForm.invalid">{{ registerLoading ? (isEditMode ? 'Salvando...' : 'Cadastrando...') : (isEditMode ? 'Salvar' : 'Cadastrar') }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Detalhes -->
+  <div *ngIf="showModal" class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Detalhes do Usuário</h5>
+          <button type="button" class="btn-close" (click)="closeModal()"></button>
+        </div>
+        <div class="modal-body" *ngIf="selectedUser">
+          <table class="table table-bordered table-sm">
+            <tbody>
+              <tr><th>ID</th><td>{{ selectedUser.id }}</td></tr>
+              <tr><th>Email</th><td>{{ selectedUser.email }}</td></tr>
+              <tr><th>Usuário</th><td>{{ selectedUser.userName }}</td></tr>
+              <tr><th>Email Confirmado</th><td>{{ selectedUser.emailConfirmed ? 'Sim' : 'Não' }}</td></tr>
+              <tr><th>Telefone</th><td>{{ selectedUser.phoneNumber || '-' }}</td></tr>
+              <tr><th>Telefone Confirmado</th><td>{{ selectedUser.phoneNumberConfirmed ? 'Sim' : 'Não' }}</td></tr>
+              <tr><th>2FA</th><td>{{ selectedUser.twoFactorEnabled ? 'Sim' : 'Não' }}</td></tr>
+              <tr><th>Bloqueado</th><td>{{ selectedUser.lockoutEnabled ? 'Sim' : 'Não' }}</td></tr>
+              <tr><th>Data de Bloqueio</th><td>{{ selectedUser.lockoutEnd || '-' }}</td></tr>
+              <tr><th>Falhas de acesso</th><td>{{ selectedUser.accessFailedCount }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Exclusão -->
+  <div *ngIf="showDeleteModal" class="modal fade show d-block" tabindex="-1" style="background:rgba(0,0,0,0.5)">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Confirmar Exclusão</h5>
+          <button type="button" class="btn-close" (click)="closeDeleteModal()"></button>
+        </div>
+        <div class="modal-body">
+          <p>Tem certeza que deseja excluir o usuário <b>{{ userToDelete?.email }}</b>?</p>
+          <div *ngIf="deleteError" class="alert alert-danger">{{ deleteError }}</div>
+          <div *ngIf="deleteSuccess" class="alert alert-success">{{ deleteSuccess }}</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeDeleteModal()" [disabled]="deleteLoading">Cancelar</button>
+          <button type="button" class="btn btn-danger" (click)="confirmDeleteUser()" [disabled]="deleteLoading">{{ deleteLoading ? 'Excluindo...' : 'Excluir' }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

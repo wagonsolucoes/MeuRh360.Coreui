@@ -1,0 +1,40 @@
+
+<div class="row">
+    <div class="col-md-2">Model:</div>
+    <div class="col-md-12">
+        <select [(ngModel)]="model">
+            <option value="deepseek-coder:6.7b-instruct">Programação - deepseek-coder:6.7b-instruct</option>
+            <option value="llama3:8b">Cyber Secutity - llama3:8b</option>
+        </select>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-2">Length:</div>
+    <div class="col-md-12">
+        <input [(ngModel)]="len" type="number" maxlength="2048" value="2048">
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-2">Temperature:</div>
+    <div class="col-md-12">
+        <input [(ngModel)]="temperature" type="number" maxlength="2048" value="2048">
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <input [(ngModel)]="prompt" style="width: 98% !important;" placeholder="Digite o prompt...">
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <button (click)="enviar()">Enviar</button>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        {{ response }}
+    </div>
+</div>
+
+
