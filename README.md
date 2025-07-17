@@ -1,11 +1,11 @@
 1 - npm install
+)
 2 - npm start
-
+)
 para fazer testes
+)
 npm run test -- --no-watch --no-progress --browsers=ChromeHeadless
-
-
-
+)
 
 [![@coreui angular](https://img.shields.io/badge/@coreui%20-angular-lightgrey.svg?style=flat-square)](https://github.com/coreui/angular)
 [![npm-coreui-angular][npm-coreui-angular-badge]][npm-coreui-angular]
